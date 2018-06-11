@@ -1,0 +1,74 @@
+version: '3' 
+services:
+  gateway:
+    image: circulo7/curso-ms-07-gateway:0.0.1
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry:8761/eureka/
+    ports: 
+      - "9090:8080" 
+    depends_on:
+      - registry
+    restart: always
+  registry:
+    image: circulo7/curso-ms-07-registry:0.0.1
+    ports: 
+      - 8761:8761
+    restart: always
+  productservice:
+    image: circulo7/curso-ms-07-productcatalogservice:0.0.1
+    environment:
+      - SPRING_DATA_ELASTICSEARCH_CLUSTER-NODES=elasticsearch:9300
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry:8761/eureka/
+    #ports:
+    #  - 8080:8080
+    #  - 8081:8081
+    depends_on:
+      - elasticsearch
+      - registry
+    restart: always
+  customerservice:
+    image: circulo7/curso-ms-07-customerservice:0.0.1
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/cacti_data_customer
+      - SPRING_DATASOURCE_USERNAME=cacti
+      - SPRING_DATASOURCE_PASSWORD=cacti
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry:8761/eureka/
+    #ports:
+    #  - 8082:8080
+    #  - 8083:8081
+    depends_on:
+      - postgres
+      - rabbitmq
+      - registry
+    restart: always
+  postgres:
+    build: postgres
+    environment:
+      - POSTGRES_PASSWORD=secret
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    restart: always
+  rabbitmq:
+    image: rabbitmq:3.6.12-management-alpine
+    ports:
+      - 15672:15672
+    restart: always
+  elasticsearch:
+    image: elasticsearch:2.4.6-alpine
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - ./data/elasticsearch/master:/usr/share/elasticsearch/data
+    restart: always
+  elasticsearch_slave:
+    image: elasticsearch:2.4.6-alpine
+    volumes:
+      - ./data/elasticsearch/slave:/usr/share/elasticsearch/data
+    depends_on:
+      - elasticsearch
+    command: elasticsearch --discovery.zen.ping.unicast.hosts=elasticsearch
+    restart: always

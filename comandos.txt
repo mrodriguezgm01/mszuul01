@@ -1,0 +1,14 @@
+$ gradle task
+$ gradle clean
+$ gradle bootRepackage
+$ gradle buildImage 
+$ docker images
+$ docker run -d -p 8761:8761 spring-cloud/eureka-service-registry:0.0.1
+$ docker run -d -p 8080:8080 spring-cloud/zuul-service-gateway:0.0.1
+$ docker run -d -p 7220:7220 microservices/productcatalogservice:0.0.1
+$ docker run -d -p 7221:7221 microservices/customerservice:0.0.1
+
+$ psql -h localhost -p 5432 -U cacti -w -d cacti_data_customer
+
+$ http :8082/v1/customer name=Edi email=ecastro@gmail.com lastModifiedAt=2018-03-20T08:20:15 -v1
+$ http :9002/_search
